@@ -1,0 +1,30 @@
+{
+  "name": "navidad-juegos-multiequipo",
+  "version": "1.0.0",
+  "description": "Juegos navideños multiequipo con sensores del móvil en red local",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "ng build --configuration production",
+    "serve": "ng serve --host 0.0.0.0 --port 4200",
+    "install:deps": "npm install"
+  },
+  "dependencies": {
+    "@angular/animations": "^22.0.0",
+    "@angular/common": "^22.0.0",
+    "@angular/compiler": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0",
+    "@angular/platform-browser-dynamic": "^22.0.0",
+    "@angular/router": "^22.0.0",
+    "socket.io": "^4.7.0",
+    "socket.io-client": "^4.7.0"
+  },
+  "devDependencies": {
+    "@angular/cli": "^22.0.0",
+    "@angular/compiler-cli": "^22.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

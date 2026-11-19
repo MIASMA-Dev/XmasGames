@@ -1,0 +1,10 @@
+{
+  "id": "mi-nuevo-juego",
+  "name": "Mi Nuevo Juego Navideño",
+  "description": "Descripción corta de cómo se juega. Añade el juego a esta carpeta como JSON y aparecerá en el catálogo del organizador.",
+  "icon": "🎁",
+  "accentColor": "#ff8906",
+  "sensors": ["gyroscope"],
+  "minPlayers": 3,
+  "duration": 60
+}

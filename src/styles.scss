@@ -1,0 +1,92 @@
+:root {
+  --snow-white: #f4f7fa;
+  --ice-blue: #7fd4ff;
+  --deep-night: #0d1b2a;
+  --pine-green: #2e8b57;
+  --red-candy: #d62828;
+  --gold-star: #ffd700;
+  --panel-bg: rgba(13, 27, 42, 0.92);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Fredoka', 'Segoe UI', sans-serif;
+  background: linear-gradient(180deg, #0b1220 0%, #14273f 55%, #1c3a52 100%);
+  color: var(--snow-white);
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: var(--ice-blue);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ---- Nieve animada global (CSS puro, sin libs) ---- */
+.snowfall {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.snowfall span {
+  position: absolute;
+  top: -10vh;
+  color: #fff;
+  opacity: 0.8;
+  animation: fall linear infinite;
+  font-size: 1.2rem;
+  user-select: none;
+}
+
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(360deg); }
+}
+
+/* ---- Botones navideños ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--deep-night);
+  background: var(--gold-star);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: scale(0.97); }
+
+.btn--red { background: var(--red-candy); color: #fff; }
+.btn--ghost {
+  background: transparent;
+  color: var(--snow-white);
+  border: 2px solid var(--ice-blue);
+  box-shadow: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Paneles ---- */
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid rgba(127, 212, 255, 0.25);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
