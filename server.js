@@ -34,15 +34,84 @@ const state = {
   timer: null,
 };
 
+// ── Puntuación calculada en servidor ──
+const scoreCooldown = new Map();
+const gyroAngle = new Map();
+
+function awardPoints(teamId, points, cooldownMs) {
+  const team = state.teams.find((t) => t.id === teamId);
+  if (!team || state.gameState !== 'playing') return;
+
+  const now = Date.now();
+  const last = scoreCooldown.get(teamId) || 0;
+  if (now - last < cooldownMs) return;
+
+  const safePoints = Math.max(0, Math.min(10, Math.round(Number(points) || 0)));
+  if (safePoints === 0) return;
+
+  scoreCooldown.set(teamId, now);
+  team.score += safePoints;
+  io.emit('game.score-update', { teamId, score: team.score, teams: state.teams });
+}
+
+function scoreFromSensor(teamId, type, data = {}, cooldownOverride) {
+  if (type === 'gyroscope') {
+    const alpha = Number(data.alpha);
+    if (!Number.isFinite(alpha)) return;
+    const previous = gyroAngle.get(teamId);
+    gyroAngle.set(teamId, alpha);
+    if (previous === undefined) return;
+    const delta = Math.abs(alpha - previous);
+    if (delta >= 30) awardPoints(teamId, Math.floor(delta / 30), cooldownOverride ?? 500);
+    return;
+  }
+
+  if (type === 'microphone') {
+    const volume = Number(data.volume ?? data.vol);
+    if (Number.isFinite(volume) && volume > 50) {
+      awardPoints(teamId, Math.floor(volume / 20), cooldownOverride ?? 500);
+    }
+    return;
+  }
+
+  if (type === 'camera' && data.captured === true) {
+    awardPoints(teamId, 5, cooldownOverride ?? 2000);
+  }
+}
+
 // ── Servidor HTTP + Socket.IO ──
 const httpServer = createServer((req, res) => {
   res.writeHead(404, { 'Content-Type': 'text/plain' });
   res.end('Use the Angular dev server or build for serving.');
 });
 
+const EXTRA_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // clientes nativos / scripts
+  if (EXTRA_ORIGINS.includes(origin)) return true;
+  try {
+    const url = new URL(origin);
+    const host = url.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return true;
+    if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+    if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+    if (/^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(host)) return true;
+  } catch {
+    return false;
+  }
+  return false;
+}
+
 const io = new Server(httpServer, {
   cors: {
-    origin: ['http://localhost:4200', 'http://localhost:3001', /.+$/],
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) callback(null, true);
+      else callback(new Error('Origen no permitido'));
+    },
     methods: ['GET', 'POST'],
   },
 });
@@ -91,21 +160,16 @@ io.on('connection', (socket) => {
     io.emit('teams.update', { teams: state.teams });
   });
 
-  // ── Enviar puntuación ──
-  socket.on('player.score', (data) => {
-    const { teamId: tid, points } = data;
-    const team = state.teams.find(t => t.id === tid);
-    if (team && state.gameState === 'playing') {
-      team.score += points;
-      io.emit('game.score-update', { teamId: tid, score: team.score, teams: state.teams });
-    }
+  // ── Puntuación: el cliente nunca envía puntos ──
+  socket.on('player.score', () => {
+    socket.emit('game.error', 'La puntuación se calcula en el servidor');
   });
 
   // ── Datos de sensor ──
   socket.on('player.sensor-data', (data) => {
-    // Los datos de sensor se pueden usar para lógica del juego
-    // Por ahora solo los registramos
-    socket.to(socket.id).emit('sensor.received', { ok: true });
+    const { teamId: tid, type, sensor } = data || {};
+    scoreFromSensor(tid, type, sensor || data?.data || {});
+    socket.emit('sensor.received', { ok: true });
   });
 
   // ── Master: seleccionar juego ──
@@ -141,6 +205,8 @@ io.on('connection', (socket) => {
         io.emit('game.start', { gameId: state.gameId, duration });
 
         // Reset scores
+        scoreCooldown.clear();
+        gyroAngle.clear();
         state.teams.forEach(t => {
           t.score = 0;
           t.status = 'playing';
@@ -184,6 +250,8 @@ io.on('connection', (socket) => {
     state.gameId = null;
     state.gameState = 'waiting';
     state.timeLeft = 0;
+    scoreCooldown.clear();
+    gyroAngle.clear();
     state.teams.forEach(t => { t.score = 0; t.status = 'waiting'; });
     io.emit('game.state-update', { gameState: state });
     io.emit('teams.update', { teams: state.teams });
@@ -206,8 +274,12 @@ io.on('connection', (socket) => {
 });
 
 // ── Iniciar servidor ──
-httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🎄 Navidad Juegos - Servidor en http://0.0.0.0:${PORT}\n`);
-  console.log(`   Servidor Socket.IO listo para conexiones.`);
-  console.log(`   Conecta el frontend Angular con proxy a este puerto.\n`);
-});
+if (require.main === module) {
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n🎄 Navidad Juegos - Servidor en http://0.0.0.0:${PORT}\n`);
+    console.log(`   Servidor Socket.IO listo para conexiones.`);
+    console.log(`   Conecta el frontend Angular con proxy a este puerto.\n`);
+  });
+}
+
+module.exports = { isAllowedOrigin, awardPoints, scoreFromSensor, state };

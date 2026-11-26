@@ -279,10 +279,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
       await this.sensorService.requestMicrophone();
       this.sensorService.subscribeVolume((vol: number) => {
         this.volume.set(vol);
-        // Enviar volumen como puntuación incremental
-        if (vol > 50) {
-          this.socketService.sendScore(this.teamId(), Math.round(vol / 10));
-        }
+        // El servidor decide la puntuación a partir del volumen
+        this.socketService.sendSensorData(this.teamId(), 'microphone', { volume: vol });
       });
     }
 
@@ -302,8 +300,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   capture(): void {
-    // Simular captura para puntuación
-    this.socketService.sendScore(this.teamId(), 5);
+    // El servidor valida la captura y calcula la puntuación
+    this.socketService.sendSensorData(this.teamId(), 'camera', { captured: true });
   }
 
   ngOnDestroy(): void {

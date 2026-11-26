@@ -77,6 +77,12 @@ Desde el móvil (misma red local que el PC):
 
 `_plantilla.json` se ignora en el catálogo (prefijo `_`).
 
+## Seguridad en LAN
+
+- Orígenes permitidos: `localhost`, `127.0.0.1`, IPs privadas (10/8, 172.16/12, 192.168/16) y los indicados en `ALLOWED_ORIGINS` (separados por comas).
+- La puntuación se calcula en el servidor a partir de `player.sensor-data`; `player.score` ya no suma puntos.
+- Verificación: `npm test` (Node test runner).
+
 ## Limitaciones conocidas
 
 - **Bluetooth**: descartado. Web Bluetooth no soporta ser *host* GATT desde
@@ -86,6 +92,6 @@ Desde el móvil (misma red local que el PC):
 
 ## Estado del proyecto
 
-- Fase: andamiaje v0.1 (19/11/2026) — estructura Angular 22 + servidor
-  Socket.IO + 3 juegos definidos en catálogo.
-- Ver `docs/ALBARAN.md` (workspace) para estado global del app 14.
+- Fase: v0.2 (26/11/2026) — Angular 22 + Socket.IO + 3 juegos en catálogo,
+  CORS restringido y scoring validado en servidor.
+- Ver `docs/ALBARAN.md` (workspace) para estado global del app 20.

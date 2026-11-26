@@ -4,7 +4,6 @@ import type { Socket } from 'socket.io-client';
 import {
   SocketRole,
   PlayerJoinPayload,
-  ScorePayload,
   SensorDataPayload,
   MasterSelectGamePayload,
   MasterStartGamePayload,
@@ -77,10 +76,6 @@ export class SocketService {
 
   setReady(teamId: string): void {
     this.emit('player.ready', { teamId });
-  }
-
-  sendScore(teamId: string, points: number): void {
-    this.emit('player.score', { teamId, points } as ScorePayload);
   }
 
   sendSensorData(teamId: string, type: string, data: Record<string, unknown>): void {

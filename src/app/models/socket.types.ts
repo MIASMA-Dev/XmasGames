@@ -30,11 +30,6 @@ export interface PlayerJoinPayload {
   device: string;
 }
 
-export interface ScorePayload {
-  teamId: string;
-  points: number;
-}
-
 export interface SensorDataPayload {
   teamId: string;
   type: 'gyroscope' | 'microphone' | 'camera' | 'custom';

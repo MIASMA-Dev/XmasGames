@@ -78,12 +78,6 @@ export class GameService {
     this._teams.update((prev) => prev.filter((t) => t.id !== teamId));
   }
 
-  updateTeamScore(teamId: string, points: number): void {
-    this._teams.update((prev) =>
-      prev.map((t) => (t.id === teamId ? { ...t, score: t.score + points } : t))
-    );
-  }
-
   updateTeamStatus(teamId: string, status: Team['status']): void {
     this._teams.update((prev) =>
       prev.map((t) => (t.id === teamId ? { ...t, status } : t))
