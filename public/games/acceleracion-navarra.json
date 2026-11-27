@@ -1,0 +1,36 @@
+{
+  "_comment": "Ejemplo de juego con scoring personalizado: movimientos rápidos otorgan más puntos",
+  "id": "aceleracion-navarra",
+  "name": "Acelerón Navarra",
+  "description": "Gira rápido como un cohete - gana puntos por movimientos bruscos",
+  "icon": "🚀",
+  "accentColor": "#007acc",
+  
+  "sensors": ["gyroscope"],
+  
+  "minPlayers": 2,
+  "maxPlayers": 6,
+  "duration": 45,
+  
+  "inputMode": "mobile",
+  
+  "requirements": {
+    "permissions": ["gyroscope"],
+    "minVersion": { "ios": 13, "android": 8 }
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": true,
+    "haptic": false
+  },
+  
+  "scoring": {
+    "gyroscope": {
+      "trigger": "delta",
+      "threshold": 20,
+      "pointsPerTrigger": 2,
+      "cooldown": 300
+    }
+  }
+}

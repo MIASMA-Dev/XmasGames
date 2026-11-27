@@ -5,9 +5,13 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "ng build --configuration production",
-    "serve": "ng serve --host 0.0.0.0 --port 4200",
+    "build": "node build.js",
+    "serve": "npm run build && node serve.js",
+    "dev": "npm run build && node serve.js",
     "test": "node --test tests/*.test.js",
+  "test:watch": "node --test --watch tests/*.test.js",
+  "test:coverage": "node --test tests/*.test.js",
+  "test:frontend": "node --test tests/*.test.js",
     "install:deps": "npm install"
   },
   "dependencies": {
@@ -20,12 +24,28 @@
     "@angular/platform-browser-dynamic": "^22.0.0",
     "@angular/router": "^22.0.0",
     "socket.io": "^4.7.0",
-    "socket.io-client": "^4.7.0"
+    "socket.io-client": "^4.7.0",
+    "webpack-merge": "^6.0.1",
+    "zone.js": "^0.16.3"
   },
   "devDependencies": {
+    "@angular-builders/jest": "^22.0.1",
+    "@angular-devkit/build-angular": "^22.3.0",
     "@angular/cli": "^22.0.0",
     "@angular/compiler-cli": "^22.0.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "css-loader": "^7.1.5",
+    "esbuild": "^0.28.2",
+    "file-loader": "^6.2.0",
+    "jest": "^30.5.2",
+    "sass-loader": "^17.1.1",
+    "style-loader": "^4.0.0",
+    "ts-jest": "^29.4.15",
+    "ts-loader": "^9.6.2",
+    "typescript": "~6.0.3",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.113.0",
+    "webpack-cli": "^7.3.1"
   }
 }

@@ -1,0 +1,47 @@
+{
+  "_comment": "Ejemplo de juego multi-sensor - desafío completo Navideño",
+  "id": "navidad-multisensor",
+  "name": "Reto Navideño 360°",
+  "description": "Combina movimiento, voz y cámara para ganar puntos",
+  "icon": "🎄🎁🎅",
+  "accentColor": "#ff6b00",
+  
+  "sensors": ["gyroscope", "microphone", "camera"],
+  
+  "minPlayers": 2,
+  "maxPlayers": 6,
+  "duration": 120,
+  
+  "inputMode": "both",
+  
+  "requirements": {
+    "permissions": ["gyroscope", "microphone", "camera"],
+    "minVersion": { "ios": 13, "android": 8 }
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": true,
+    "haptic": false
+  },
+  
+  "scoring": {
+    "gyroscope": {
+      "trigger": "delta",
+      "threshold": 25,
+      "pointsPerTrigger": 3,
+      "cooldown": 400
+    },
+    "microphone": {
+      "trigger": "volume",
+      "threshold": 65,
+      "pointsPerUnit": 0.06,
+      "cooldown": 500
+    },
+    "camera": {
+      "trigger": "capture",
+      "points": 10,
+      "cooldown": 3000
+    }
+  }
+}

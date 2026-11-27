@@ -1,0 +1,31 @@
+{
+  "_usage": "Copiar a dev-juego-demo.json para probar el modo desarrollo",
+  "id": "dev-juego-demo",
+  "name": "Juego Dev Demo",
+  "description": "Ejemplo de juego para probar el modo desarrollo y hot-reload",
+  "icon": "🎯",
+  "accentColor": "#3b82f6",
+  "sensors": [],
+  "minPlayers": 1,
+  "maxPlayers": 10,
+  "duration": 60,
+  "inputMode": "touch",
+  "requirements": [],
+  "feedback": ["visual", "audio"],
+  "scoring": {
+    "touch": {
+      "trigger": "tap",
+      "pointsPerTap": 1,
+      "cooldown": 500
+    }
+  },
+  "visualEffects": {
+    "background": "gradient",
+    "particleSystem": "confetti"
+  },
+  "winCondition": {
+    "type": "score",
+    "target": 30
+  },
+  "source": "custom-dev"
+}

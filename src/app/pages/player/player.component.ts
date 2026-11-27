@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GameService } from '../../services/game.service';
@@ -200,7 +200,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   volume = signal(0);
   gyroAngle = signal(0);
 
-  private cleanupEffects: (() => void)[] = [];
+  private stateEffect: ReturnType<typeof effect> | null = null;
 
   readonly teamIcons: Record<string, { name: string; icon: string }> = {
     'team-1': { name: 'Rudos Renos', icon: '🦌' },
@@ -222,17 +222,15 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.socketService.connect('player', teamId);
     this.socketService.joinTeam(teamId, info.name, navigator.userAgent.slice(0, 30));
 
-    // Efectos para actualizar estado
-    this.cleanupEffects.push(
-      effect(() => {
-        const gs = this.gameService.gameState();
-        if (gs) {
-          this.gameState.set(gs.status);
-          const team = gs.teams?.find(t => t.id === teamId);
-          if (team) this.score.set(team.score);
-        }
-      })
-    );
+    // Efecto para actualizar estado
+    this.stateEffect = effect(() => {
+      const gs = this.gameService.gameState();
+      if (gs) {
+        this.gameState.set(gs.status);
+        const team = gs.teams?.find(t => t.id === teamId);
+        if (team) this.score.set(team.score);
+      }
+    });
 
     // Listeners del socket
     this.socketService.onGameStart.subscribe(() => {
@@ -251,11 +249,15 @@ export class PlayerComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngOnDestroy(): void {
+    this.stateEffect?.destroy();
+  }
+
   joinGame(): void {
     this.socketService.setReady(this.teamId());
   }
 
-  private async setupSensors(): void {
+  private async setupSensors(): Promise<void> {
     const game = this.currentGame();
     if (!game) return;
 
@@ -302,11 +304,5 @@ export class PlayerComponent implements OnInit, OnDestroy {
   capture(): void {
     // El servidor valida la captura y calcula la puntuación
     this.socketService.sendSensorData(this.teamId(), 'camera', { captured: true });
-  }
-
-  ngOnDestroy(): void {
-    this.stopSensors();
-    this.socketService.disconnect();
-    this.cleanupEffects.forEach(fn => fn());
   }
 }

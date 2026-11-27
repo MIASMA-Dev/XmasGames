@@ -1,0 +1,36 @@
+{
+  "_comment": "Ejemplo de juego con scoring de micrófono - salto vocal",
+  "id": "cancan-elefantes",
+  "name": "Cancán de Elefantes",
+  "description": "Grita fuerte como un elefante - puntos por volumen extenso",
+  "icon": "🐘",
+  "accentColor": "#8b4513",
+  
+  "sensors": ["microphone"],
+  
+  "minPlayers": 1,
+  "maxPlayers": 4,
+  "duration": 30,
+  
+  "inputMode": "mobile",
+  
+  "requirements": {
+    "permissions": ["microphone"],
+    "minVersion": { "ios": 13, "android": 8 }
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": true,
+    "haptic": false
+  },
+  
+  "scoring": {
+    "microphone": {
+      "trigger": "volume",
+      "threshold": 70,
+      "pointsPerUnit": 0.08,
+      "cooldown": 400
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { Injectable, inject, computed, signal, WritableSignal, Signal } from '@angular/core';
+import { Injectable, inject, computed, signal, EffectRef } from '@angular/core';
 import { GameDef, Team, GameState } from '../models/game.types';
 import { DEFAULT_GAMES } from '../config/games.catalog';
 import { GameLoaderService } from './game-loader.service';
@@ -52,6 +52,31 @@ export class GameService {
     if (custom.length > 0) {
       this._games.update((prev) => [...prev, ...custom]);
     }
+    this.setupDevModeHotReload();
+  }
+
+  /**
+   * Modo desarrollo: hot-reload de juegos cuando cambian en localStorage
+   */
+  private devEffect: EffectRef | null = null;
+
+  private setupDevModeHotReload(): void {
+    window.addEventListener('navidad-games-updated', (e: Event) => {
+      const customGames = (e as CustomEvent).detail as GameDef[];
+      this._games.update((prev) => {
+        // Filtrar juegos personalizados existentes y añadir nuevos
+        const withoutCustom = prev.filter(g => !g.id.startsWith('dev-') && !g.source?.includes('custom'));
+        return [...withoutCustom, ...customGames];
+      });
+    });
+  }
+
+  /**
+   * Recargar juegos personalizados desde localStorage (modo dev)
+   */
+  reloadDevGames(): void {
+    const custom = this.gameLoader.reloadDevGames();
+    this._games.update((prev) => [...prev, ...custom]);
   }
 
   /**

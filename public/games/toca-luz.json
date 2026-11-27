@@ -1,0 +1,29 @@
+{
+  "_comment": "Ejemplo de juego accesible - solo toca la pantalla (sin sensores)",
+  "id": "toca-luz",
+  "name": "Toca la Luz",
+  "description": "Toque rápido en la pantalla - accesible para todos",
+  "icon": "✨",
+  "accentColor": "#ffd700",
+  
+  "sensors": [],
+  
+  "minPlayers": 1,
+  "maxPlayers": 6,
+  "duration": 30,
+  
+  "inputMode": "both",
+  
+  "requirements": {
+    "permissions": [],
+    "minVersion": {}
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": true,
+    "haptic": true
+  },
+  
+  "scoring": {}
+}

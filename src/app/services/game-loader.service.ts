@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal, Signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GameDef } from '../models/game.types';
@@ -19,6 +19,11 @@ export class GameLoaderService {
   get defaultGames(): GameDef[] {
     return DEFAULT_GAMES;
   }
+
+  /**
+   * Modo desarrollo: hot-reload de juegos desde localStorage
+   */
+  readonly devMode: Signal<boolean> = signal(false);
 
   /**
    * Carga un juego específico por ID desde la carpeta public/games/
@@ -61,5 +66,33 @@ export class GameLoaderService {
     } catch {
       return [];
     }
+  }
+
+  /**
+   * Modo desarrollo: recarga juegos desde localStorage (hot-reload)
+   */
+  reloadDevGames(): GameDef[] {
+    const custom = this.getStoredGames();
+    // Disparar evento para notificar a otros tabs
+    window.dispatchEvent(new CustomEvent('navidad-games-updated', { detail: custom }));
+    return custom;
+  }
+
+  /**
+   * Modo desarrollo: escucha cambios en localStorage
+   */
+  onGamesUpdated(callback: (games: GameDef[]) => void): () => void {
+    const handler = (e: StorageEvent) => {
+      if (e.key === 'navidad-custom-games') {
+        try {
+          const games = e.newValue ? JSON.parse(e.newValue) : [];
+          callback(games);
+        } catch {
+          // ignora
+        }
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
   }
 }

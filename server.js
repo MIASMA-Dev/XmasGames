@@ -1,18 +1,47 @@
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { readFileSync, readdirSync, existsSync } = require('fs');
-const { join, resolve } = require('path');
+const { join } = require('path');
 
 // ── Config ──
 const PORT = process.env.PORT || 3001;
 const GAMES_DIR = join(__dirname, 'public', 'games');
 
+// ── Estado global de la partida ──
+const state = {
+  gameId: null,
+  gameDef: null, // Referencia al GameDef cargado
+  gameState: 'waiting', // waiting | countdown | playing | finished
+  timeLeft: 0,
+  teams: [],
+  timer: null,
+};
+
+// ── Caché de scoring por juego ──
+const scoreCooldown = new Map();
+const gyroAngle = new Map();
+
 // ── Cargar juegos personalizados desde public/games/*.json ──
-function loadCustomGames() {
+let cachedGames = null;
+let cacheTime = 0;
+
+async function loadCustomGamesCached() {
+  const now = Date.now();
+  // Caché por 5 segundos
+  if (cachedGames && now - cacheTime < 5000) {
+    return cachedGames;
+  }
+  
   const games = [];
-  if (!existsSync(GAMES_DIR)) return games;
+  if (!existsSync(GAMES_DIR)) {
+    cachedGames = games;
+    cacheTime = now;
+    return games;
+  }
+  
   const files = readdirSync(GAMES_DIR)
-    .filter(f => f.endsWith('.json') && f !== 'catalog.json');
+    .filter(f => f.endsWith('.json') && f !== 'catalog.json' && !f.startsWith('_'));
+  
   for (const file of files) {
     try {
       const path = join(GAMES_DIR, file);
@@ -22,22 +51,13 @@ function loadCustomGames() {
       console.error(`[Games] Error loading ${file}:`, err.message);
     }
   }
+  
+  cachedGames = games;
+  cacheTime = now;
   return games;
 }
 
-// ── Estado global de la partida ──
-const state = {
-  gameId: null,
-  gameState: 'waiting', // waiting | countdown | playing | finished
-  timeLeft: 0,
-  teams: [],
-  timer: null,
-};
-
 // ── Puntuación calculada en servidor ──
-const scoreCooldown = new Map();
-const gyroAngle = new Map();
-
 function awardPoints(teamId, points, cooldownMs) {
   const team = state.teams.find((t) => t.id === teamId);
   if (!team || state.gameState !== 'playing') return;
@@ -54,7 +74,50 @@ function awardPoints(teamId, points, cooldownMs) {
   io.emit('game.score-update', { teamId, score: team.score, teams: state.teams });
 }
 
-function scoreFromSensor(teamId, type, data = {}, cooldownOverride) {
+// ── Scoring configurables por juego ──
+function awardGyroscopeScore(teamId, delta, scoring) {
+  if (!scoring || scoring.trigger !== 'delta') {
+    // Fallback al scoring por defecto
+    if (delta >= 30) awardPoints(teamId, Math.floor(delta / 30), 500);
+    return;
+  }
+  const threshold = scoring.threshold || 30;
+  const pointsPer = scoring.pointsPerTrigger || 1;
+  const cooldown = scoring.cooldown || 500;
+  if (delta >= threshold) awardPoints(teamId, pointsPer, cooldown);
+}
+
+function awardMicrophoneScore(teamId, volume, scoring) {
+  if (!scoring || scoring.trigger !== 'volume') {
+    // Fallback al scoring por defecto
+    if (volume > 50) awardPoints(teamId, Math.floor(volume / 20), 500);
+    return;
+  }
+  const threshold = scoring.threshold || 50;
+  const pointsPerUnit = scoring.pointsPerUnit || 1;
+  const cooldown = scoring.cooldown || 500;
+  if (volume > threshold) awardPoints(teamId, Math.floor(volume * pointsPerUnit), cooldown);
+}
+
+function awardCameraScore(teamId, captured, scoring) {
+  if (!scoring || scoring.trigger !== 'capture') {
+    // Fallback al scoring por defecto
+    if (captured) awardPoints(teamId, 5, 2000);
+    return;
+  }
+  const points = scoring.points || 5;
+  const cooldown = scoring.cooldown || 2000;
+  if (captured) awardPoints(teamId, points, cooldown);
+}
+
+function getGameScoring() {
+  if (!state.gameDef || !state.gameDef.scoring) return null;
+  return state.gameDef.scoring;
+}
+
+function scoreFromSensor(teamId, type, data = {}) {
+  const scoring = getGameScoring();
+  
   if (type === 'gyroscope') {
     const alpha = Number(data.alpha);
     if (!Number.isFinite(alpha)) return;
@@ -62,20 +125,21 @@ function scoreFromSensor(teamId, type, data = {}, cooldownOverride) {
     gyroAngle.set(teamId, alpha);
     if (previous === undefined) return;
     const delta = Math.abs(alpha - previous);
-    if (delta >= 30) awardPoints(teamId, Math.floor(delta / 30), cooldownOverride ?? 500);
+    awardGyroscopeScore(teamId, delta, scoring?.gyroscope);
     return;
   }
 
   if (type === 'microphone') {
     const volume = Number(data.volume ?? data.vol);
-    if (Number.isFinite(volume) && volume > 50) {
-      awardPoints(teamId, Math.floor(volume / 20), cooldownOverride ?? 500);
+    if (Number.isFinite(volume)) {
+      awardMicrophoneScore(teamId, volume, scoring?.microphone);
     }
     return;
   }
 
-  if (type === 'camera' && data.captured === true) {
-    awardPoints(teamId, 5, cooldownOverride ?? 2000);
+  if (type === 'camera') {
+    const captured = data.captured === true || data.captured === 'true';
+    awardCameraScore(teamId, captured, scoring?.camera);
   }
 }
 
@@ -156,7 +220,7 @@ io.on('connection', (socket) => {
   // ── Jugador está listo ──
   socket.on('player.ready', (data) => {
     const team = state.teams.find(t => t.id === data.teamId);
-    if (team) team.status = 'waiting';
+    if (team) team.status = 'playing';
     io.emit('teams.update', { teams: state.teams });
   });
 
@@ -173,11 +237,14 @@ io.on('connection', (socket) => {
   });
 
   // ── Master: seleccionar juego ──
-  socket.on('master.select-game', (data) => {
+  socket.on('master.select-game', async (data) => {
     state.gameId = data.gameId;
-    console.log(`[Master] Juego seleccionado: ${data.gameId}`);
+    // Buscar el GameDef correspondiente
+    const games = await loadCustomGamesCached();
+    state.gameDef = games.find(g => g.id === data.gameId) || null;
+    console.log(`[Master] Juego seleccionado: ${data.gameId}`, state.gameDef?.scoring ? '(scoring configurado)' : '(scoring por defecto)');
     io.emit('game.state-update', {
-      gameState: { ...state, gameId: data.gameId },
+      gameState: { ...state, gameId: data.gameId, gameDef: state.gameDef },
     });
   });
 
@@ -248,6 +315,7 @@ io.on('connection', (socket) => {
       state.timer = null;
     }
     state.gameId = null;
+    state.gameDef = null;
     state.gameState = 'waiting';
     state.timeLeft = 0;
     scoreCooldown.clear();
@@ -282,4 +350,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { isAllowedOrigin, awardPoints, scoreFromSensor, state };
+module.exports = { isAllowedOrigin, awardPoints, scoreFromSensor, state, loadCustomGamesCached };

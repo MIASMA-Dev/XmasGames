@@ -1,9 +1,12 @@
-import { Component, OnInit, inject, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GameService } from '../../services/game.service';
 import { SocketService } from '../../services/socket.service';
-import { GameDef, Team } from '../../models/game.types';
+import { GameDef, Team, GameState } from '../../models/game.types';
+
+const LAST_DURATION_STORAGE_KEY = 'xmasgames:last-duration';
+let alertPlayed = false;
 
 @Component({
   selector: 'app-master',
@@ -114,6 +117,30 @@ import { GameDef, Team } from '../../models/game.types';
 
       .connection-status.online { background: #2e8b57; }
       .connection-status.offline { background: #d62828; }
+
+      .game-duration {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .timer-display {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gold-star);
+        transition: all 0.3s ease;
+      }
+
+      .timer-display.warning {
+        color: #ff6b35;
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
     `,
   ],
   template: `
@@ -128,11 +155,23 @@ import { GameDef, Team } from '../../models/game.types';
           <span class="status-badge" [class]="gameService.gameState()?.status || 'waiting'">
             {{ gameStateText() }}
           </span>
+          @if (gameState()?.status === 'countdown' || gameState()?.status === 'playing') {
+            <div class="game-duration">
+              <span class="timer-display" [class.warning]="isLast10Seconds()">
+                ⏱️ {{ timeRemaining() }}s
+              </span>
+            </div>
+          }
         </div>
       </div>
 
       <div class="game-select panel">
         <h2>🎮 Juegos Disponibles</h2>
+        <div class="game-duration">
+          <label>Duración:
+            <input type="number" [(ngModel)]="customDuration" min="10" max="300" value="60">
+          </label>
+        </div>
         @for (game of games(); track game.id) {
           <div
             class="game-card"
@@ -178,17 +217,76 @@ import { GameDef, Team } from '../../models/game.types';
     </div>
   `,
 })
-export class MasterComponent implements OnInit {
+export class MasterComponent implements OnInit, OnDestroy {
   private gameService = inject(GameService);
   private socketService = inject(SocketService);
+  private audioCtx: AudioContext | null = null;
+  customDuration = 60;
 
   // ── Estado ──
   games = this.gameService.games;
   connected = this.socketService.connected ? () => this.socketService.connected : () => false;
   selectedGameId = computed(() => this.gameService.currentGame()?.id || '');
 
+  // Temporizador visual mejorado
+  gameState = computed(() => this.gameService.gameState());
+  timeRemaining = computed(() => this.gameState()?.timeLeft ?? 0);
+  isLast10Seconds = computed(() => this.timeRemaining() <= 10 && this.timeRemaining() > 0);
+
   // ── Computed ──
   ranking = this.gameService.ranking;
+
+  constructor() {
+    // Setup timer alert with effect
+    effect(() => {
+      const time = this.timeRemaining();
+      if (time === 11 || time === 10 || time === 9) {
+        this.playAlertSound();
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    this.socketService.connect('master');
+    this.setupAudio();
+  }
+
+  ngOnDestroy(): void {
+    if (this.audioCtx) {
+      this.audioCtx.close();
+    }
+  }
+
+  private async setupAudio(): Promise<void> {
+    try {
+      this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch {
+      this.audioCtx = null;
+    }
+  }
+
+  private async playAlertSound(): Promise<void> {
+    if (!this.audioCtx) return;
+    try {
+      const hasOscillator = typeof (this.audioCtx as any).createOscillator === 'function';
+      const oscillator = hasOscillator
+        ? (this.audioCtx as any).createOscillator()
+        : null;
+      if (!oscillator) return;
+
+      const gainNode = this.audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(this.audioCtx.destination);
+      oscillator.type = 'beep' as const;
+      oscillator.frequency.value = 880;
+      gainNode.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.2);
+      oscillator.start();
+      oscillator.stop(this.audioCtx.currentTime + 0.2);
+    } catch {
+      // Silenciamente fallar si audio no disponible
+    }
+  }
 
   gameStateText(): string {
     const state = this.gameService.gameState();
@@ -206,16 +304,20 @@ export class MasterComponent implements OnInit {
     return map[status] || status;
   }
 
-  ngOnInit(): void {
-    this.socketService.connect('master');
-  }
-
   selectGame(game: GameDef): void {
     this.gameService.selectGame(game.id);
   }
 
   startGame(): void {
-    this.gameService.startGame();
+    const duration = this.customDuration;
+    this.gameService.startGame(duration);
+
+    // Persistir duración
+    try {
+      sessionStorage.setItem(LAST_DURATION_STORAGE_KEY, duration.toString());
+    } catch {
+      // Ignorar errores de sessionStorage
+    }
   }
 
   stopGame(): void {

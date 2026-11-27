@@ -42,7 +42,7 @@ export class SensorService {
 
   /** Suscríbete para recibir datos del giroscopio */
   onOrientation = (e: DeviceOrientationEvent) => {
-    if (this.gyroscopeHandler) this.gyroscopeHandler(e);
+    if (this.gyroscopeHandler) this.gyroscopeHandler(e as any);
   };
 
   onMotion = (e: DeviceMotionEvent) => {
@@ -50,7 +50,7 @@ export class SensorService {
   };
 
   subscribeGyroscope(handler: (data: DeviceMotionEvent | DeviceOrientationEvent) => void): void {
-    this.gyroscopeHandler = handler;
+    this.gyroscopeHandler = handler as any;
   }
 
   stopGyroscope(): void {

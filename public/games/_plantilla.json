@@ -1,10 +1,49 @@
 {
+  "_comment": "ESTA PLANTILLA NO APARECE EN EL CATÁLOGO (prefijo _). Copia y renombra para crear un juego.",
+  "_usage": "1. Copia este archivo → mi-juego.json\n         2. Edita los campos necesarios\n         3. Ejecuta 'npm run build' para generar el build actualizado\n         4. Reinicia el servidor con 'npm start'\n         El juego aparecerá automáticamente.\n         NOTA: El archivo __no__ se carga automáticamente. El build debe incluir el nuevo JSON.",
+  
   "id": "mi-nuevo-juego",
   "name": "Mi Nuevo Juego Navideño",
-  "description": "Descripción corta de cómo se juega. Añade el juego a esta carpeta como JSON y aparecerá en el catálogo del organizador.",
+  "description": "Descripción corta de cómo se juega.",
   "icon": "🎁",
   "accentColor": "#ff8906",
+  
   "sensors": ["gyroscope"],
+  
   "minPlayers": 3,
-  "duration": 60
+  "maxPlayers": 6,
+  "duration": 60,
+  
+  "inputMode": "mobile",
+  
+  "requirements": {
+    "permissions": ["gyroscope"],
+    "minVersion": { "ios": 13, "android": 8 }
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": false,
+    "haptic": false
+  },
+  
+  "scoring": {
+    "gyroscope": {
+      "trigger": "delta",
+      "threshold": 30,
+      "pointsPerTrigger": 1,
+      "cooldown": 500
+    },
+    "microphone": {
+      "trigger": "volume",
+      "threshold": 50,
+      "pointsPerUnit": 0.05,
+      "cooldown": 500
+    },
+    "camera": {
+      "trigger": "capture",
+      "points": 5,
+      "cooldown": 2000
+    }
+  }
 }

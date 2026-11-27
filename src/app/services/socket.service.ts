@@ -1,7 +1,7 @@
-import { Injectable, inject, DestroyRef, EventEmitter, Output, output } from '@angular/core';
-import * as io from 'socket.io-client';
-import type { Socket } from 'socket.io-client';
+import { Injectable, EventEmitter } from '@angular/core';
+import { io, Socket } from 'socket.io-client';
 import {
+  SOCKET_EVENTS,
   SocketRole,
   PlayerJoinPayload,
   SensorDataPayload,
@@ -10,12 +10,13 @@ import {
 } from '../models/socket.types';
 import { Team, GameState } from '../models/game.types';
 
+type SocketClient = Socket;
+
 @Injectable({ providedIn: 'root' })
 export class SocketService {
-  private socket: Socket | null = null;
-  private destroyRef = inject(DestroyRef);
+  private socket: SocketClient | null = null;
 
-  // ── Outputs (_SIGNAL_ style via EventEmitter for simplicity) ──
+  // ── Outputs (via EventEmitter for compatibility) ──
   readonly onGameState = new EventEmitter<GameState>();
   readonly onScoreUpdate = new EventEmitter<any>();
   readonly onGameStart = new EventEmitter<any>();
@@ -54,53 +55,61 @@ export class SocketService {
       console.log('[Socket] Desconectado');
     });
 
-    // ── Listeners ──
-    this.socket.on('game.state-update', (data) => this.onGameState.emit(data));
-    this.socket.on('game.score-update', (data) => this.onScoreUpdate.emit(data));
-    this.socket.on('game.start', (data) => this.onGameStart.emit(data));
-    this.socket.on('game.countdown', (data) => this.onGameCountdown.emit(data));
-    this.socket.on('game.end', (data) => this.onGameEnd.emit(data));
-    this.socket.on('game.error', (msg) => this.onError.emit(String(msg)));
-    this.socket.on('teams.update', (data) => this.onTeamsUpdate.emit(data));
-    this.socket.on('lobby.update', (data) => this.onLobbyUpdate.emit(data));
+    // ── Listeners (usando constantes) ──
+    this.socket.on(SOCKET_EVENTS.SERVER.STATE_UPDATE, (data) => this.onGameState.emit(data));
+    this.socket.on(SOCKET_EVENTS.SERVER.SCORE_UPDATE, (data) => this.onScoreUpdate.emit(data));
+    this.socket.on(SOCKET_EVENTS.SERVER.START, (data) => this.onGameStart.emit(data));
+    this.socket.on(SOCKET_EVENTS.SERVER.COUNTDOWN, (data) => this.onGameCountdown.emit(data));
+    this.socket.on(SOCKET_EVENTS.SERVER.END, (data) => this.onGameEnd.emit(data));
+    this.socket.on(SOCKET_EVENTS.SERVER.ERROR, (msg) => this.onError.emit(String(msg)));
+    this.socket.on(SOCKET_EVENTS.SERVER.TEAMS_UPDATE, (data) => this.onTeamsUpdate.emit(data));
+    this.socket.on(SOCKET_EVENTS.SERVER.LOBBY_UPDATE, (data) => this.onLobbyUpdate.emit(data));
   }
 
   // ── Acciones de Jugador ──
   joinTeam(teamId: string, teamName: string, device: string): void {
-    this.emit('player.join', { teamId, teamName, device } as PlayerJoinPayload);
+    const payload: PlayerJoinPayload = { teamId, teamName, device };
+    this.emit(SOCKET_EVENTS.PLAYER.JOIN, payload);
   }
 
   leaveTeam(teamId: string): void {
-    this.emit('player.leave', { teamId });
+    this.emit(SOCKET_EVENTS.PLAYER.LEAVE, { teamId });
   }
 
   setReady(teamId: string): void {
-    this.emit('player.ready', { teamId });
+    this.emit(SOCKET_EVENTS.PLAYER.READY, { teamId });
   }
 
-  sendSensorData(teamId: string, type: string, data: Record<string, unknown>): void {
-    this.emit('player.sensor-data', { teamId, type, data } as SensorDataPayload);
+  sendScore(teamId: string, points: number): void {
+    this.emit(SOCKET_EVENTS.PLAYER.SCORE, { teamId, points });
+  }
+
+  sendSensorData(teamId: string, type: 'gyroscope' | 'microphone' | 'camera' | 'custom', data: Record<string, unknown>): void {
+    const payload: SensorDataPayload = { teamId, type, data };
+    this.emit(SOCKET_EVENTS.PLAYER.SENSOR_DATA, payload);
   }
 
   // ── Acciones de Master ──
   selectGame(gameId: string): void {
-    this.emit('master.select-game', { gameId } as MasterSelectGamePayload);
+    const payload: MasterSelectGamePayload = { gameId };
+    this.emit(SOCKET_EVENTS.MASTER.SELECT_GAME, payload);
   }
 
   startGame(duration?: number): void {
-    this.emit('master.start-game', { duration } as MasterStartGamePayload);
+    const payload: MasterStartGamePayload = { duration };
+    this.emit(SOCKET_EVENTS.MASTER.START_GAME, payload);
   }
 
   stopGame(): void {
-    this.emit('master.stop-game', {});
+    this.emit(SOCKET_EVENTS.MASTER.STOP_GAME, {});
   }
 
   resetGame(): void {
-    this.emit('master.reset-game', {});
+    this.emit(SOCKET_EVENTS.MASTER.RESET_GAME, {});
   }
 
   setTeamName(teamId: string, name: string): void {
-    this.emit('master.set-team-name', { teamId, name });
+    this.emit(SOCKET_EVENTS.MASTER.SET_TEAM_NAME, { teamId, name });
   }
 
   // ── Helpers ──
@@ -119,5 +128,33 @@ export class SocketService {
    */
   getRawSocket(): Socket | null {
     return this.socket;
+  }
+
+  /**
+   * Verifica los permisos del navegador para sensores.
+   */
+  async checkPermissions(): Promise<Record<string, PermissionState>> {
+    const permissions: Record<string, PermissionState> = {};
+    
+    try {
+      if ('permissions' in navigator) {
+        const camera = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        permissions.camera = camera.state;
+        
+        const microphone = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        permissions.microphone = microphone.state;
+      }
+    } catch (e) {
+      console.warn('[Socket] No se pudieron verificar permisos:', e);
+    }
+    
+    return permissions;
+  }
+
+  /**
+   * Construye el payload estándar para sensor data (usado por sensor.service).
+   */
+  createSensorPayload(teamId: string, sensorType: string, data: Record<string, any>): SensorDataPayload {
+    return { teamId, type: sensorType as 'gyroscope' | 'microphone' | 'camera' | 'custom', data };
   }
 }

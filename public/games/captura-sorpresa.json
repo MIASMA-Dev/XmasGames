@@ -1,0 +1,35 @@
+{
+  "_comment": "Ejemplo de juego con scoring de cámara - toma la foto",
+  "id": "captura-sorpresa",
+  "name": "Captura Sorpresa",
+  "description": "Toma una foto sorpresa - cada captura vale puntos",
+  "icon": "📸",
+  "accentColor": "#28a745",
+  
+  "sensors": ["camera"],
+  
+  "minPlayers": 1,
+  "maxPlayers": 3,
+  "duration": 60,
+  
+  "inputMode": "mobile",
+  
+  "requirements": {
+    "permissions": ["camera"],
+    "minVersion": { "ios": 13, "android": 8 }
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": true,
+    "haptic": false
+  },
+  
+  "scoring": {
+    "camera": {
+      "trigger": "capture",
+      "points": 8,
+      "cooldown": 2000
+    }
+  }
+}

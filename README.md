@@ -53,10 +53,10 @@ ordenador actúa como **panel de organización/espectación**.
 npm install
 
 # 2. Terminal A — servidor de señal (Socket.IO)
-node server.js
+npm start
 
-# 3. Terminal B — Angular (http://localhost:4200, escucha en 0.0.0.0)
-npx ng serve
+# 3. Terminal B — Angular (http://localhost:4200)
+npm run dev
 ```
 
 Desde el móvil (misma red local que el PC):
@@ -69,7 +69,17 @@ Desde el móvil (misma red local que el PC):
 > En red local, Chrome pide permiso de mic/cámara al iniciar cada juego
 > (requerimiento de los navegadores).
 
-## Añadir un juego (simple)
+## Build
+
+El proyecto usa esbuild para compilar TypeScript a JavaScript:
+
+```powershell
+npm run build
+```
+
+El bundle resultante se genera en `dist/main.js` y sirve desde `serve.js`.
+
+## Seguridad en LAN
 
 1. Copia `public/games/_plantilla.json` → `public/games/mi-juego.json`.
 2. Cambia `id`, `name`, `icon`, `sensors`, `duration`.
@@ -77,21 +87,78 @@ Desde el móvil (misma red local que el PC):
 
 `_plantilla.json` se ignora en el catálogo (prefijo `_`).
 
-## Seguridad en LAN
+## Segmentos de IP
 
 - Orígenes permitidos: `localhost`, `127.0.0.1`, IPs privadas (10/8, 172.16/12, 192.168/16) y los indicados en `ALLOWED_ORIGINS` (separados por comas).
 - La puntuación se calcula en el servidor a partir de `player.sensor-data`; `player.score` ya no suma puntos.
 - Verificación: `npm test` (Node test runner).
 
-## Limitaciones conocidas
+## Modo Desarrollo ⚡
 
-- **Bluetooth**: descartado. Web Bluetooth no soporta ser *host* GATT desde
-  navegador y no existe en Safari iOS (caniuse, 05/2026). WebRTC DataChannel
-  como alternativa P2P se deja para una futura versión.
-- iOS: el giroscopio exige aceptar el prompt de permiso al tocar «Unirse».
+Para añadir juegos rápidamente sin rebuild:
+
+```bash
+# Crear juego desde template
+node scripts/dev.js add nombre-juego
+
+# Listar juegos
+node scripts/dev.js list
+```
+
+Los cambios se reflejan al recargar la pagina (sin `npm run build`).
+
+## Scoring Personalizable por Juego
+
+Cada juego puede configurar reglas de puntuación específicas:
+
+```json
+{
+  "scoring": {
+    "gyroscope": {
+      "trigger": "delta",
+      "threshold": 20,
+      "pointsPerTrigger": 2,
+      "cooldown": 300
+    },
+    "microphone": {
+      "trigger": "volume",
+      "threshold": 70,
+      "pointsPerUnit": 0.08,
+      "cooldown": 400
+    },
+    "camera": {
+      "trigger": "capture",
+      "points": 8,
+      "cooldown": 2000
+    }
+  }
+}
+```
+
+- **Gyroscope**: Puntos por ángulo (delta) detectado
+- **Microphone**: Puntos por nivel de volumen
+- **Camera**: Puntos por captura (trigger: "capture")
+
+Ver `docs/JUEGOS.md` para guía completa y ejemplos.
+
+## Tests
+
+```bash
+npm test           # Ejecutar todos los tests (Node.js test runner)
+```
+
+### Tests disponibles
+
+- **Servidor** (`tests/server.test.js`): 3 tests (CORS, límites de clientes, scoring)
+- **Frontend** (54 tests unitarios):
+  - `game.service.test.js`: Lógica de equipos, juego, ranking
+  - `master.component.test.js`: Estado, selección, ciclo de juego
+  - `player.component.test.js`: Estado de jugador, sensores, UI
+  - `sensor.service.test.js`: Permisos y lecturas de sensores
+  - `socket.service.test.js`: Comunicación WebSocket
 
 ## Estado del proyecto
 
-- Fase: v0.2 (26/11/2026) — Angular 22 + Socket.IO + 3 juegos en catálogo,
-  CORS restringido y scoring validado en servidor.
-- Ver `docs/ALBARAN.md` (workspace) para estado global del app 20.
+- Fase: v1.0 — Build funcional con esbuild, TypeScript sin errores.
+- Ver `docs/_estado.md` para detalles del estado actualizado.
+- Ver `docs/specs/SPEC_FUNCIONAL.md` y `docs/specs/SPEC_TECNICA.md` para especificaciones.
