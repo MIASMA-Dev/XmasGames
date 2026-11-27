@@ -1,0 +1,36 @@
+{
+  "_comment": "Ejemplo de juego de voz - imita sonidos navideños",
+  "id": "sonidos-navideños",
+  "name": "Sonidos Navideños",
+  "description": "Imita sonidos de navidad (viento, campanas, hadas) para ganar puntos",
+  "icon": "🔔",
+  "accentColor": "#ff6b6b",
+  
+  "sensors": ["microphone"],
+  
+  "minPlayers": 1,
+  "maxPlayers": 4,
+  "duration": 60,
+  
+  "inputMode": "mobile",
+  
+  "requirements": {
+    "permissions": ["microphone"],
+    "minVersion": { "ios": 13, "android": 8 }
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": true,
+    "haptic": false
+  },
+  
+  "scoring": {
+    "microphone": {
+      "trigger": "volume",
+      "threshold": 60,
+      "pointsPerUnit": 0.05,
+      "cooldown": 800
+    }
+  }
+}

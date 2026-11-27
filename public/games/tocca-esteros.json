@@ -1,0 +1,29 @@
+{
+  "_comment": "Ejemplo de juego accesible - toca estrellas en pantalla",
+  "id": "tocca-esteros",
+  "name": "Toca los Esteros",
+  "description": "Toque rápido en estrellas brillantes que aparecen aleatoriamente",
+  "icon": "⭐",
+  "accentColor": "#ffd700",
+  
+  "sensors": [],
+  
+  "minPlayers": 1,
+  "maxPlayers": 6,
+  "duration": 45,
+  
+  "inputMode": "both",
+  
+  "requirements": {
+    "permissions": [],
+    "minVersion": {}
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": true,
+    "haptic": false
+  },
+  
+  "scoring": {}
+}

@@ -1,0 +1,36 @@
+{
+  "_comment": "Ejemplo de juego de movimiento - salta como Obleas Volador",
+  "id": "obleas-volador",
+  "name": "Obleas Volador",
+  "description": "Mueve la tablet como un avión volador - evita los obstáculos",
+  "icon": "🦅",
+  "accentColor": "#2c3e50",
+  
+  "sensors": ["gyroscope"],
+  
+  "minPlayers": 1,
+  "maxPlayers": 2,
+  "duration": 40,
+  
+  "inputMode": "mobile",
+  
+  "requirements": {
+    "permissions": ["gyroscope"],
+    "minVersion": { "ios": 13, "android": 8 }
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": true,
+    "haptic": false
+  },
+  
+  "scoring": {
+    "gyroscope": {
+      "trigger": "delta",
+      "threshold": 15,
+      "pointsPerTrigger": 3,
+      "cooldown": 200
+    }
+  }
+}

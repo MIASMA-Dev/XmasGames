@@ -8,6 +8,64 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body class="winter-theme">
-  <app-root></app-root>
+  <!-- Nieve animada -->
+  <div class="snowfall" id="snowfall"></div>
+  
+  <!-- Landing page -->
+  <div class="landing-container" id="landingPage">
+    <div class="landing-content">
+      <h1 class="landing-title">🎄 Navidad Juegos Multiequipo</h1>
+      <p class="landing-subtitle">¡Juega y compite con tu equipo en esta Navidad!</p>
+      
+      <div class="games-preview">
+        <h2>🎮 Juegos Disponibles</h2>
+        <div class="games-grid">
+          <div class="game-card">
+            <div class="game-icon">🚀</div>
+            <h3>Giro Rápido</h3>
+            <p>gyroscope</p>
+          </div>
+          <div class="game-card">
+            <div class="game-icon">🐘</div>
+            <h3>Cancán Elefantes</h3>
+            <p>microphone</p>
+          </div>
+          <div class="game-card">
+            <div class="game-icon">📸</div>
+            <h3>Captura Sorpresa</h3>
+            <p>camera</p>
+          </div>
+          <div class="game-card">
+            <div class="game-icon">✨</div>
+            <h3>Toca la Luz</h3>
+            <p>touch</p>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn--red" id="joinBtn">
+        <span>🎮 Comenzar</span>
+      </button>
+      
+      <div class="teams-section">
+        <h2>🏆 Equipos</h2>
+        <div class="teams-grid" id="teamsGrid">
+          <div class="team-slot" data-team="rojas">
+            <span class="team-name">🔴 Rojas</span>
+            <span class="team-score">0</span>
+          </div>
+          <div class="team-slot" data-team="azules">
+            <span class="team-name">🔵 Azules</span>
+            <span class="team-score">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Juego en marcha -->
+  <div class="game-container" id="gameContainer" style="display: none;">
+    <app-root></app-root>
+  </div>
 </body>
 </html>

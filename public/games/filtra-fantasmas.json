@@ -1,0 +1,35 @@
+{
+  "_comment": "Ejemplo de juego con filtro de cámara - toca fantasmas invisibles",
+  "id": "filtra-fantasmas",
+  "name": "Filtra Fantasmas",
+  "description": "Usa la cámara para ver fantasmas invisibles y tócalos para ganar puntos",
+  "icon": "👻",
+  "accentColor": "#8a2be2",
+  
+  "sensors": ["camera"],
+  
+  "minPlayers": 1,
+  "maxPlayers": 6,
+  "duration": 45,
+  
+  "inputMode": "mobile",
+  
+  "requirements": {
+    "permissions": ["camera"],
+    "minVersion": { "ios": 13, "android": 8 }
+  },
+  
+  "feedback": {
+    "visual": true,
+    "sound": true,
+    "haptic": false
+  },
+  
+  "scoring": {
+    "camera": {
+      "trigger": "capture",
+      "points": 5,
+      "cooldown": 1500
+    }
+  }
+}

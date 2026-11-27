@@ -90,3 +90,157 @@ button {
   padding: 1.25rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
+
+/* ---- Landing Page ---- */
+.landing-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.landing-content {
+  text-align: center;
+  max-width: 600px;
+}
+
+.landing-title {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 2.5rem;
+  background: linear-gradient(90deg, var(--gold-star), var(--red-candy), var(--ice-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+}
+
+.landing-subtitle {
+  font-size: 1.2rem;
+  color: var(--ice-blue);
+  margin-bottom: 2rem;
+}
+
+.games-preview {
+  margin: 2rem 0;
+}
+
+.games-preview h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--snow-white);
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  justify-content: center;
+}
+
+.game-card {
+  background: var(--panel-bg);
+  border: 1px solid rgba(127, 212, 255, 0.25);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.game-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.game-card h3 {
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  color: var(--snow-white);
+}
+
+.game-card p {
+  font-size: 0.75rem;
+  color: var(--ice-blue);
+  margin: 0;
+}
+
+#joinBtn {
+  margin: 1.5rem 0;
+}
+
+#teamsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.team-slot {
+  background: var(--panel-bg);
+  border: 2px solid;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.team-slot::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+[data-team="rojas"]::before {
+  background: var(--red-candy);
+}
+
+[data-team="azules"]::before {
+  background: var(--ice-blue);
+}
+
+.team-name {
+  font-weight: 600;
+  color: var(--snow-white);
+}
+
+.team-score {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1rem;
+  background: linear-gradient(90deg, var(--gold-star), var(--red-candy));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.game-container {
+  height: 100vh;
+}
+
+/* ---- Nieve animada JS ---- */
+.snowfall-js {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.snowfall-js span {
+  position: absolute;
+  top: -10vh;
+  color: #fff;
+  opacity: 0.9;
+  font-size: 1.2rem;
+  user-select: none;
+  animation: fall-linear infinite;
+  filter: drop-shadow(0 0 2px #fff);
+}
+
+@keyframes fall-linear {
+  to { transform: translateY(110vh) rotate(360deg); }
+}
