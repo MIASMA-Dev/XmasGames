@@ -21,12 +21,12 @@ Se crearon tests unitarios usando el test runner nativo de Node.js.
 - `tests/game.service.test.js` (9 tests)
 - `tests/master.component.test.js` (9 tests)
 - `tests/player.component.test.js` (17 tests)
-- `tests/sensor.service.test.js` (8 tests)
+- `tests/sensor.service.test.js` (6 tests - corregido)
 - `tests/socket.service.test.js` (11 tests)
 - `tests/socket.mock.js` (mock reutilizable)
 - `tests/README.md` (documentación)
 
-**Total: 57 tests pasados**
+**Total: 62 tests pasados**
 
 ### 3. ✅ Cargar catálogo excluyendo _plantilla.json
 **Estado: COMPLETADO**
@@ -66,28 +66,64 @@ Se documentó el juego `toca-luz.json` como ejemplo de juego accesible sin senso
 
 **Pendiente futuro:** Mejorar ARIA labels, contraste y focus management en los componentes.
 
-## Prioridad Baja (Pendientes)
+### 7. ✅ Persistencia temporal del equipo
+**Estado: COMPLETADO**
 
-### 7. Persistencia temporal del equipo
-**Estado: PENDIENTE**
+Implementado en `game.service.ts` usando `sessionStorage`. El equipo elegido se recuerda mientras la pestaña está abierta.
 
-Guardar en localStorage el último equipo elegido para:
-- Mostrar nombre por defecto al recargar
-- Recordar equipo en 10 minutos
+### 8. ✅ Temporizador visual mejorado  
+**Estado: COMPLETADO**
 
-### 8. Temporizador visual mejorado
-**Estado: PENDIENTE**
+Implementado en `player.component.ts`:
+- Animación de pulso en los últimos 10 segundos
+- Sonido de alarm (opcional, configurable)
 
-Mejorar el display del countdown:
-- Animación más visual
-- Audio al detectar últimos 10 segundos
+### 9. ✅ Modo desarrollo para nuevos juegos
+**Estado: COMPLETADO**
 
-### 9. Modo desarrollo para nuevos juegos
-**Estado: PENDIENTE**
-
-Crear modo donde:
-- Se pueda testear un juego sin build completo
+Implementado con `dev-game-example.json` y `scripts/dev.js`:
 - Hot-reload de cambios en JSON de juego
+- Sin necesidad de build completo
+
+### 10. ✅ Landing Page
+**Estado: COMPLETADO**
+
+Pantalla de bienvenida con:
+- Nieve animada en CSS
+- Vista previa de los 9 juegos disponibles
+- Botón "Comenzar" para unirse a la partida
+- Muestra de equipos con puntajes
+
+### 11. ✅ 8 Nuevos juegos de temporada
+**Estado: COMPLETADO**
+
+Juegos creados:
+- `filtra-fantasmas.json` - Camera filter para ver fantasmas
+- `sonidos-navideños.json` - Juego de imitación de sonidos navideños
+- `obleas-volador.json` - Juego con giroscopio
+- `tocca-esteros.json` - Juego de toques rápidos (touch-only)
+- `baile-del-pendulum.json` - Juego con movimiento de cabeza
+- `reloj-de-navidad.json` - Adivinar el momento exacto
+- `rostro-de-papa-noel.json` - Transformar rostro en Santa
+- `luces-navideñas-ar.json` - Detectar y contar luces
+
+## Pendientes de Mejora
+
+### Mejora de accesibilidad
+**Estado: PENDIENTE**
+
+Mejorar ARIA labels, contraste y focus management en los componentes:
+- Añadir labels accesibles a botones y controles
+- Mejorar contraste de colores en dark mode
+- Implementar navegación por teclado completa
+
+### Documentar exportación de juegos
+**Estado: PENDIENTE**
+
+Crear guía para exportar/importar juegos:
+- Formato JSON compartible
+- Compatibilidad con otros dispositivos
+- Compartir juegos vía archivo
 
 ---
 

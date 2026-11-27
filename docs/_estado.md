@@ -36,6 +36,10 @@ actualizado: 2026-11-27
 - `public/games/captura-sorpresa.json` — Juego ejemplo camera
 - `public/games/navidad-multisensor.json` — Juego ejemplo multi-sensor
 - `public/games/toca-luz.json` — Juego accesible sin sensores
+- `public/games/filtra-fantasmas.json` — Juego camera filter
+- `public/games/sonidos-navideños.json` — Juego microphone/voice
+- `public/games/obleas-volador.json` — Juego gyroscope
+- `public/games/tocca-esteros.json` — Juego touch-only
 - `build.js` — Script de build con esbuild (alternativa al CLI de Angular)
 - `serve.js` — Servidor estático para el build
 - `scripts/dev.js` — Helper para modo desarrollo
@@ -49,6 +53,8 @@ actualizado: 2026-11-27
 3. **Socket types refactorizados** - Eventos tipados con const assertions
 4. **Modo desarrollo** - Hot-reload sin rebuild
 5. **GameMetadata** - Campo source para tracking de juegos
+6. **Landing page** - Pantalla de bienvenida con nieve animada y preview de juegos
+7. **8 nuevos juegos de temporada** - Filtra Fantasmas, Sonidos Navideños, Obleas Volador, Toca los Esteros, Baile del Pendulum, Reloj de Navidad, Rostro de Papá Noél, Luces Navideñas AR
 
 ## Pendientes de Mejora
 - Documentar cómo exportar juegos

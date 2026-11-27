@@ -93,53 +93,13 @@ El bundle resultante se genera en `dist/main.js` y sirve desde `serve.js`.
 - La puntuación se calcula en el servidor a partir de `player.sensor-data`; `player.score` ya no suma puntos.
 - Verificación: `npm test` (Node test runner).
 
-## Modo Desarrollo ⚡
+## Landing Page
 
-Para añadir juegos rápidamente sin rebuild:
-
-```bash
-# Crear juego desde template
-node scripts/dev.js add nombre-juego
-
-# Listar juegos
-node scripts/dev.js list
-```
-
-Los cambios se reflejan al recargar la pagina (sin `npm run build`).
-
-## Scoring Personalizable por Juego
-
-Cada juego puede configurar reglas de puntuación específicas:
-
-```json
-{
-  "scoring": {
-    "gyroscope": {
-      "trigger": "delta",
-      "threshold": 20,
-      "pointsPerTrigger": 2,
-      "cooldown": 300
-    },
-    "microphone": {
-      "trigger": "volume",
-      "threshold": 70,
-      "pointsPerUnit": 0.08,
-      "cooldown": 400
-    },
-    "camera": {
-      "trigger": "capture",
-      "points": 8,
-      "cooldown": 2000
-    }
-  }
-}
-```
-
-- **Gyroscope**: Puntos por ángulo (delta) detectado
-- **Microphone**: Puntos por nivel de volumen
-- **Camera**: Puntos por captura (trigger: "capture")
-
-Ver `docs/JUEGOS.md` para guía completa y ejemplos.
+La aplicación muestra una pantalla de bienvenida con:
+- ❆ Nieve animada en CSS
+- Vista previa de los 9 juegos disponibles
+- Botón "Comenzar" para unirse a la partida
+- Muestra de equipos con puntajes
 
 ## Tests
 
@@ -150,7 +110,7 @@ npm test           # Ejecutar todos los tests (Node.js test runner)
 ### Tests disponibles
 
 - **Servidor** (`tests/server.test.js`): 3 tests (CORS, límites de clientes, scoring)
-- **Frontend** (54 tests unitarios):
+- **Frontend** (64 tests unitarios):
   - `game.service.test.js`: Lógica de equipos, juego, ranking
   - `master.component.test.js`: Estado, selección, ciclo de juego
   - `player.component.test.js`: Estado de jugador, sensores, UI
